@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Admin Panel – Surajfx</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#080810;--card:#0f0f1e;--border:rgba(255,255,255,.08);--purple:#a855f7;--pink:#ec4899;--orange:#f97316;--text:#f8fafc;--muted:#94a3b8;--grad:linear-gradient(135deg,#a855f7,#ec4899,#f97316);--r:14px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.login-box{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:40px 32px;max-width:380px;width:100%;text-align:center}
+.login-logo{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px}
+.login-sub{color:var(--muted);font-size:14px;margin-bottom:28px}
+.inp{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:10px;padding:13px 16px;color:var(--text);font-size:15px;outline:none;transition:border-color .2s;margin-bottom:12px;font-family:'DM Sans',sans-serif}
+.inp:focus{border-color:rgba(168,85,247,.6)}
+.inp::placeholder{color:var(--muted)}
+.btn-login{width:100%;background:var(--grad);color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:15px;padding:14px;border-radius:10px;border:none;cursor:pointer}
+.err{color:#f87171;font-size:13px;margin-top:8px;display:none}
+.admin-wrap{display:none;max-width:900px;margin:0 auto;padding:20px 16px 60px}
+.admin-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:32px;padding:16px 20px;background:var(--card);border:1px solid var(--border);border-radius:var(--r)}
+.admin-title{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.admin-nav-links{display:flex;gap:12px;align-items:center}
+.admin-nav-links a{color:var(--muted);font-size:13px;text-decoration:none;font-family:'Syne',sans-serif;font-weight:600}
+.btn-logout{background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--muted);padding:8px 16px;border-radius:100px;font-size:13px;cursor:pointer;font-family:'Syne',sans-serif;font-weight:600}
+.section{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:24px;margin-bottom:24px}
+.section-title{font-family:'Syne',sans-serif;font-weight:700;font-size:16px;margin-bottom:20px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-group.full{grid-column:1/-1}
+label{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.5px;text-transform:uppercase}
+.finp{background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-size:14px;outline:none;transition:border-color .2s;font-family:'DM Sans',sans-serif;width:100%}
+.finp:focus{border-color:rgba(168,85,247,.6)}
+.finp::placeholder{color:rgba(148,163,184,.5);font-size:13px}
+.btn-add{background:var(--grad);color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;padding:13px 28px;border-radius:10px;border:none;cursor:pointer}
+.btn-add:disabled{opacity:.5;cursor:not-allowed}
+.success-msg{color:#4ade80;font-size:13px;display:none}
+.tpl-list{display:flex;flex-direction:column;gap:10px}
+.tpl-item{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:12px}
+.tpl-num{font-family:'Syne',sans-serif;font-weight:800;font-size:15px;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;min-width:80px}
+.tpl-info{flex:1;min-width:0}
+.tpl-meta{font-size:11px;color:var(--muted);margin-top:2px}
+.tpl-cat{display:inline-block;font-size:10px;padding:2px 8px;border-radius:100px;font-family:'Syne',sans-serif;font-weight:700;text-transform:uppercase}
+.cat-trending{background:rgba(249,115,22,.2);color:#fb923c}
+.cat-cinematic{background:rgba(168,85,247,.2);color:#c084fc}
+.cat-hindi{background:rgba(236,72,153,.2);color:#f472b6}
+.btn-del{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#f87171;padding:6px 12px;border-radius:8px;font-size:12px;cursor:pointer;font-family:'Syne',sans-serif;font-weight:600}
+.btn-edit{background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.3);color:#c084fc;padding:6px 12px;border-radius:8px;font-size:12px;cursor:pointer;font-family:'Syne',sans-serif;font-weight:600}
+.btn-edit:hover{background:rgba(168,85,247,.25)}
+
+/* EDIT MODAL */
+.edit-modal{position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;pointer-events:none;transition:opacity .3s}
+.edit-modal.open{opacity:1;pointer-events:all}
+.edit-modal-bg{position:absolute;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(10px)}
+.edit-modal-box{position:relative;z-index:1;background:#0f0f1e;border:1px solid var(--border);border-radius:16px;padding:24px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;transform:scale(.9);transition:transform .3s cubic-bezier(.34,1.56,.64,1)}
+.edit-modal.open .edit-modal-box{transform:scale(1)}
+.edit-modal-title{font-family:'Syne',sans-serif;font-weight:800;font-size:18px;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:20px}
+.edit-close{position:absolute;top:14px;right:14px;background:var(--surface);border:1px solid var(--border);color:var(--muted);width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px}
+.btn-save{background:var(--grad);color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;padding:12px 24px;border-radius:10px;border:none;cursor:pointer;width:100%;margin-top:8px}
+.btn-save:disabled{opacity:.5;cursor:not-allowed}
+.empty-list{text-align:center;color:var(--muted);font-size:14px;padding:32px}
+.spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(168,85,247,.3);border-top-color:#a855f7;border-radius:50%;animation:sp .7s linear infinite;vertical-align:middle;margin-right:4px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}
+.stat-box{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:20px;text-align:center}
+.stat-n{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stat-l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:4px}
+@media(max-width:600px){.form-grid{grid-template-columns:1fr}.stats-row{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-box">
+    <div class="login-logo">⚙️ Admin Panel</div>
+    <div class="login-sub">Surajfx Template Manager</div>
+    <input class="inp" type="password" id="pwdInput" placeholder="Enter password" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="btn-login" onclick="doLogin()">Login →</button>
+    <div class="err" id="loginErr">❌ Wrong password! Try again.</div>
+  </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div class="admin-wrap" id="adminWrap">
+  <div class="admin-nav">
+    <div class="admin-title">⚙️ Surajfx Admin</div>
+    <div class="admin-nav-links">
+      <a href="index.html">← Home</a>
+      <button class="btn-logout" onclick="logout()">Logout</button>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-box"><div class="stat-n" id="totalTemplates">0</div><div class="stat-l">Total Templates</div></div>
+    <div class="stat-box"><div class="stat-n" id="totalUses">0</div><div class="stat-l">Total Uses</div></div>
+    <div class="stat-box"><div class="stat-n" id="totalLikes">0</div><div class="stat-l">Total Likes</div></div>
+  </div>
+
+  <!-- EXTRA BUTTON SETTINGS -->
+  <div class="section">
+    <div class="section-title">⚡ Middle Button Settings</div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:16px">This button appears between "Use Template" and "How to use" on every card.</p>
+    <div class="form-grid">
+      <div class="form-group full" style="flex-direction:row;align-items:center;gap:12px;flex-wrap:wrap">
+        <label style="text-transform:none;font-size:14px;color:var(--text)">Enable Button</label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+          <input type="checkbox" id="ebEnabled" style="width:18px;height:18px;cursor:pointer" onchange="updateExtraBtn()">
+          <span id="ebStatus" style="font-size:13px;color:var(--muted)">Disabled</span>
+        </label>
+      </div>
+      <div class="form-group full">
+        <label>Button Name / Text</label>
+        <input class="finp" type="text" id="ebName" placeholder="e.g. 🎬 Watch Tutorial" oninput="updateExtraBtn()">
+      </div>
+      <div class="form-group full">
+        <label>Button Link</label>
+        <input class="finp" type="url" id="ebLink" placeholder="https://..." oninput="updateExtraBtn()">
+      </div>
+    </div>
+    <div style="margin-top:12px;font-size:12px;color:#4ade80;display:none" id="ebSaved">✅ Saved!</div>
+  </div>
+
+  <!-- ADD TEMPLATE -->
+  <div class="section">
+    <div class="section-title">➕ Add New Template</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Template Number *</label>
+        <input class="finp" type="number" id="fNum" placeholder="e.g. 251">
+      </div>
+      <div class="form-group">
+        <label>Category</label>
+        <select class="finp" id="fCat">
+          <option value="trending">🔥 Trending</option>
+          <option value="cinematic">🎬 Cinematic</option>
+          <option value="hindi">🎵 Hindi</option>
+        </select>
+      </div>
+      <div class="form-group full">
+        <label>YouTube Video Link *</label>
+        <input class="finp" type="url" id="fVideo" placeholder="https://youtu.be/xxxxx or https://youtube.com/watch?v=xxxxx">
+      </div>
+      <div class="form-group full">
+        <label>CapCut Template Link *</label>
+        <input class="finp" type="url" id="fCapcut" placeholder="https://capcut-yt.onelink.me/...">
+      </div>
+      <div class="form-group full">
+        <label>How to Use Video Link (optional — blank = default)</label>
+        <input class="finp" type="url" id="fHowto" placeholder="https://youtu.be/...">
+      </div>
+    </div>
+    <div style="margin-top:16px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+      <button class="btn-add" id="addBtn" onclick="addTemplate()">✦ Add Template</button>
+      <div class="success-msg" id="successMsg">✅ Template added successfully!</div>
+    </div>
+  </div>
+
+  <!-- TEMPLATE LIST -->
+  <div class="section">
+    <div class="section-title">📋 All Templates (<span id="totalCount">0</span>)</div>
+    <div class="tpl-list" id="tplList">
+      <div class="empty-list"><span class="spin"></span> Loading...</div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, onValue, push, remove, get }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const app = initializeApp({
+  apiKey:"AIzaSyDCb0OReMC3BScflE5lpvsp9F6Denq5nqM",
+  authDomain:"surajfx-dbfbf.firebaseapp.com",
+  databaseURL:"https://surajfx-dbfbf-default-rtdb.firebaseio.com",
+  projectId:"surajfx-dbfbf",
+  storageBucket:"surajfx-dbfbf.firebasestorage.app",
+  messagingSenderId:"1082799197835",
+  appId:"1:1082799197835:web:3f3f527ba4fd581d570e8e"
+});
+const db = getDatabase(app);
+const PASS = "suraj@2.0";
+
+if(sessionStorage.getItem('sx_admin')==='1') showAdmin();
+
+window.doLogin = function(){
+  if(document.getElementById('pwdInput').value===PASS){
+    sessionStorage.setItem('sx_admin','1');
+    showAdmin();
+  } else {
+    document.getElementById('loginErr').style.display='block';
+  }
+};
+
+window.logout = function(){
+  sessionStorage.removeItem('sx_admin');
+  location.reload();
+};
+
+function showAdmin(){
+  document.getElementById('loginWrap').style.display='none';
+  document.getElementById('adminWrap').style.display='block';
+  loadList();
+  loadStats();
+}
+
+function loadStats(){
+  // Total uses
+  onValue(ref(db,'uses'), snap=>{
+    const d=snap.val()||{};
+    const total=Object.values(d).reduce((a,b)=>a+(b||0),0);
+    const el=document.getElementById('totalUses');
+    if(el) el.textContent=total>=1000?Math.floor(total/1000)+'K+':String(total);
+  });
+  // Total likes
+  onValue(ref(db,'likes'), snap=>{
+    const d=snap.val()||{};
+    const total=Object.values(d).reduce((a,b)=>a+(b||0),0);
+    const el=document.getElementById('totalLikes');
+    if(el) el.textContent=String(total);
+  });
+}
+
+function loadList(){
+  onValue(ref(db,'templates'),snap=>{
+    const data=snap.val()||{};
+    const items=Object.entries(data).sort((a,b)=>(b[1].num||0)-(a[1].num||0));
+    document.getElementById('totalCount').textContent=items.length;
+    document.getElementById('totalTemplates').textContent=items.length;
+    const list=document.getElementById('tplList');
+    if(!items.length){
+      list.innerHTML='<div class="empty-list">No templates yet. Add your first one above!</div>';
+      return;
+    }
+    list.innerHTML=items.map(([id,t])=>{
+      const catClass=t.cat==='cinematic'?'cat-cinematic':t.cat==='hindi'?'cat-hindi':'cat-trending';
+      const catLabel=t.cat==='cinematic'?'🎬 Cinematic':t.cat==='hindi'?'🎵 Hindi':'🔥 Trending';
+      const date=t.addedAt?new Date(t.addedAt).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}):'Unknown';
+      const safeVideo=(t.video||'').replace(/'/g,"\\'");
+      const safeCapcut=(t.capcut||'').replace(/'/g,"\\'");
+      const safeHowto=(t.howto||'').replace(/'/g,"\\'");
+      return `
+      <div class="tpl-item">
+        <div class="tpl-num">#${t.num||'?'}</div>
+        <div class="tpl-info">
+          <div style="font-size:13px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:8px">
+            Template #${t.num}
+            <span class="tpl-cat ${catClass}">${catLabel}</span>
+          </div>
+          <div class="tpl-meta">Added: ${date}</div>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn-edit" onclick="openEdit('${id}',${t.num},'${safeVideo}','${safeCapcut}','${safeHowto}','${t.cat||'trending'}')">✏️ Edit</button>
+          <button class="btn-del" onclick="delTemplate('${id}')">🗑</button>
+        </div>
+      </div>`;
+    }).join('');
+  });
+}
+
+window.addTemplate=async function(){
+  const num=document.getElementById('fNum').value.trim();
+  const video=document.getElementById('fVideo').value.trim();
+  const capcut=document.getElementById('fCapcut').value.trim();
+  const howto=document.getElementById('fHowto').value.trim();
+  const cat=document.getElementById('fCat').value;
+  if(!num||!video||!capcut){alert('Template number, video link and CapCut link are required!');return;}
+  const btn=document.getElementById('addBtn');
+  btn.disabled=true; btn.innerHTML='<span class="spin"></span> Adding...';
+  try{
+    await push(ref(db,'templates'),{
+      num:parseInt(num),video,capcut,
+      howto:howto||'',cat,
+      addedAt:Date.now()
+    });
+    ['fNum','fVideo','fCapcut','fHowto'].forEach(id=>document.getElementById(id).value='');
+    const msg=document.getElementById('successMsg');
+    msg.style.display='block';
+    setTimeout(()=>msg.style.display='none',3000);
+  }catch(e){alert('Error: '+e.message);}
+  btn.disabled=false; btn.innerHTML='✦ Add Template';
+};
+
+window.delTemplate=async function(id){
+  if(!confirm('Delete this template? This cannot be undone!')) return;
+  await remove(ref(db,'templates/'+id));
+};
+
+// Load extra button settings
+onValue(ref(db,'settings/extraBtn'), snap=>{
+  const v = snap.val()||{};
+  document.getElementById('ebEnabled').checked = v.enabled||false;
+  document.getElementById('ebName').value = v.name||'';
+  document.getElementById('ebLink').value = v.link||'';
+  document.getElementById('ebStatus').textContent = v.enabled ? 'Enabled ✅' : 'Disabled';
+  document.getElementById('ebStatus').style.color = v.enabled ? '#4ade80' : 'var(--muted)';
+});
+
+let ebTimer;
+window.updateExtraBtn = function(){
+  clearTimeout(ebTimer);
+  ebTimer = setTimeout(async()=>{
+    const enabled = document.getElementById('ebEnabled').checked;
+    const name = document.getElementById('ebName').value.trim();
+    const link = document.getElementById('ebLink').value.trim();
+    document.getElementById('ebStatus').textContent = enabled ? 'Enabled ✅' : 'Disabled';
+    document.getElementById('ebStatus').style.color = enabled ? '#4ade80' : 'var(--muted)';
+    const {set} = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
+    await set(ref(db,'settings/extraBtn'), {enabled, name, link});
+    const s = document.getElementById('ebSaved');
+    s.style.display='block';
+    setTimeout(()=>s.style.display='none', 2000);
+  }, 800);
+};
+
+window.saveEdit=async function(){
+  const id=document.getElementById('editId').value;
+  const num=document.getElementById('editNum').value.trim();
+  const video=document.getElementById('editVideo').value.trim();
+  const capcut=document.getElementById('editCapcut').value.trim();
+  const howto=document.getElementById('editHowto').value.trim();
+  const cat=document.getElementById('editCat').value;
+  if(!num||!video||!capcut){alert('Template number, video link and CapCut link are required!');return;}
+  const btn=document.getElementById('saveBtn');
+  btn.disabled=true; btn.innerHTML='<span class="spin"></span> Saving...';
+  try{
+    const {set} = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
+    await set(ref(db,'templates/'+id),{
+      num:parseInt(num), video, capcut,
+      howto:howto||'', cat,
+      addedAt: Date.now()
+    });
+    const msg=document.getElementById('editSuccess');
+    msg.style.display='block';
+    setTimeout(()=>{msg.style.display='none'; closeEdit();},1500);
+  }catch(e){alert('Error: '+e.message);}
+  btn.disabled=false; btn.innerHTML='✦ Save Changes';
+};
+</script>
+<!-- EDIT MODAL -->
+<div class="edit-modal" id="editModal">
+  <div class="edit-modal-bg" onclick="closeEdit()"></div>
+  <div class="edit-modal-box">
+    <button class="edit-close" onclick="closeEdit()">✕</button>
+    <div class="edit-modal-title" id="editTitle">✏️ Edit Template</div>
+    <input type="hidden" id="editId">
+    <div class="form-group" style="margin-bottom:12px">
+      <label>Template Number</label>
+      <input class="finp" type="number" id="editNum">
+    </div>
+    <div class="form-group" style="margin-bottom:12px">
+      <label>Category</label>
+      <select class="finp" id="editCat">
+        <option value="trending">🔥 Trending</option>
+        <option value="cinematic">🎬 Cinematic</option>
+        <option value="hindi">🎵 Hindi</option>
+      </select>
+    </div>
+    <div class="form-group" style="margin-bottom:12px">
+      <label>YouTube Video Link</label>
+      <input class="finp" type="url" id="editVideo" placeholder="https://youtu.be/xxxxx">
+    </div>
+    <div class="form-group" style="margin-bottom:12px">
+      <label>CapCut Template Link</label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input class="finp" type="url" id="editCapcut" placeholder="https://capcut-yt.onelink.me/..." style="flex:1">
+        <button onclick="copyCapcut()" style="background:rgba(168,85,247,.2);border:1px solid rgba(168,85,247,.4);color:#c084fc;padding:11px 14px;border-radius:10px;font-size:13px;cursor:pointer;white-space:nowrap;font-family:'Syne',sans-serif;font-weight:700;flex-shrink:0" id="copyBtn">📋 Copy</button>
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:16px">
+      <label>How to Use Video Link (optional)</label>
+      <input class="finp" type="url" id="editHowto" placeholder="https://youtu.be/...">
+    </div>
+    <button class="btn-save" id="saveBtn" onclick="saveEdit()">✦ Save Changes</button>
+    <div class="success-msg" id="editSuccess" style="margin-top:8px">✅ Saved successfully!</div>
+  </div>
+</div>
+
+<script>
+window.openEdit = function(id, num, video, capcut, howto, cat){
+  document.getElementById('editId').value = id;
+  document.getElementById('editNum').value = num;
+  document.getElementById('editVideo').value = video;
+  document.getElementById('editCapcut').value = capcut;
+  document.getElementById('editHowto').value = howto;
+  document.getElementById('editCat').value = cat;
+  document.getElementById('editTitle').textContent = '✏️ Edit Template #'+num;
+  document.getElementById('editSuccess').style.display='none';
+  document.getElementById('editModal').classList.add('open');
+};
+
+window.closeEdit = function(){
+  document.getElementById('editModal').classList.remove('open');
+};
+
+window.copyCapcut = function(){
+  const val = document.getElementById('editCapcut').value.trim();
+  if(!val){ alert('No link to copy!'); return; }
+  navigator.clipboard.writeText(val).then(()=>{
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = '✅ Copied!';
+    btn.style.color = '#4ade80';
+    setTimeout(()=>{ btn.textContent='📋 Copy'; btn.style.color='#c084fc'; }, 2000);
+  }).catch(()=>{
+    // fallback
+    const ta = document.createElement('textarea');
+    ta.value = val;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = '✅ Copied!';
+    setTimeout(()=>{ btn.textContent='📋 Copy'; }, 2000);
+  });
+};
+</script>
+
+</body>
+</html>
