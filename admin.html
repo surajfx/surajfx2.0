@@ -226,28 +226,35 @@ function loadList(){
       const safeCapcut=(t.capcut||'').replace(/'/g,"\\'");
       const safeHowto=(t.howto||'').replace(/'/g,"\\'");
       return `
-      <div class="tpl-item">
-        <div class="tpl-num">#${t.num||'?'}</div>
-        <div class="tpl-info">
-          <div style="font-size:13px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:8px">
-            Template #${t.num}
-            <span class="tpl-cat ${catClass}">${catLabel}</span>
+      <div class="tpl-item" style="flex-direction:column;align-items:stretch;gap:10px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="tpl-num">#${t.num||'?'}</div>
+          <div class="tpl-info" style="flex:1">
+            <div style="font-size:13px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:8px">
+              Template #${t.num}
+              <span class="tpl-cat ${catClass}">${catLabel}</span>
+            </div>
+            <div class="tpl-meta">Added: ${date}</div>
           </div>
-          <div class="tpl-meta">Added: ${date}</div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <button class="btn-edit" onclick="openEdit('${id}',${t.num},'${safeVideo}','${safeCapcut}','${safeHowto}','${t.cat||'trending'}')">✏️ Edit</button>
+            <button class="btn-del" onclick="delTemplate('${id}')">🗑</button>
+          </div>
         </div>
-        <div style="display:flex;gap:6px;align-items:center">
-          <button class="btn-edit" onclick="openEdit('${id}',${t.num},'${safeVideo}','${safeCapcut}','${safeHowto}','${t.cat||'trending'}')">✏️ Edit</button>
-          <button class="btn-del" onclick="delTemplate('${id}')">🗑</button>
+        <div style="padding:10px 12px;background:rgba(168,85,247,0.06);border-radius:10px;border:1px solid rgba(168,85,247,0.12)">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;margin-bottom:8px">
+            <input type="checkbox" ${t.midBtn ? 'checked' : ''} id="mid_${id}" style="width:16px;height:16px;cursor:pointer;accent-color:#a855f7" onchange="toggleMidBtn('${id}', this.checked)">
+            <span style="font-size:12px;font-weight:600;color:${t.midBtn ? '#a855f7' : 'var(--muted)'}">⚡ Middle Button ${t.midBtn ? '<span style="color:#4ade80">● ON</span>' : '<span style="color:var(--muted)">● OFF</span>'}</span>
+          </label>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <input type="text" id="midname_${id}" value="${t.midName||''}" placeholder="Button name (e.g. 🖼 Image Prompt)" 
+              style="flex:1;min-width:140px;padding:6px 10px;border-radius:8px;border:1px solid rgba(168,85,247,0.2);background:rgba(0,0,0,0.3);color:#f8fafc;font-size:12px;outline:none"
+              oninput="saveMidName('${id}', this.value)" ${!t.midBtn ? 'disabled' : ''}>
+            <input type="url" id="midlink_${id}" value="${t.midLink||''}" placeholder="https://link for this card..." 
+              style="flex:2;min-width:180px;padding:6px 10px;border-radius:8px;border:1px solid rgba(168,85,247,0.2);background:rgba(0,0,0,0.3);color:#f8fafc;font-size:12px;outline:none"
+              oninput="saveMidLink('${id}', this.value)" ${!t.midBtn ? 'disabled' : ''}>
+          </div>
         </div>
-      </div>
-      <div style="margin-top:8px;padding:10px 12px;background:rgba(168,85,247,0.06);border-radius:10px;border:1px solid rgba(168,85,247,0.12);display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap">
-          <input type="checkbox" ${t.midBtn ? 'checked' : ''} id="mid_${id}" style="width:16px;height:16px;cursor:pointer;accent-color:#a855f7" onchange="toggleMidBtn('${id}', this.checked)">
-          <span style="font-size:12px;color:${t.midBtn ? '#a855f7' : 'var(--muted)'}">⚡ Middle Button</span>
-        </label>
-        <input type="url" id="midlink_${id}" value="${t.midLink||''}" placeholder="https://link for this card..." 
-          style="flex:1;min-width:180px;padding:6px 10px;border-radius:8px;border:1px solid rgba(168,85,247,0.2);background:rgba(0,0,0,0.3);color:#f8fafc;font-size:12px;outline:none"
-          oninput="saveMidLink('${id}', this.value)" ${!t.midBtn ? 'disabled' : ''}>
       </div>`;
     }).join('');
   });
@@ -285,11 +292,10 @@ window.delTemplate=async function(id){
 window.toggleMidBtn = async function(id, enabled){
   const {set} = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
   await set(ref(db,'templates/'+id+'/midBtn'), enabled);
-  // Enable/disable link input
-  const inp = document.getElementById('midlink_'+id);
-  if(inp) inp.disabled = !enabled;
-  const span = document.querySelector('#mid_'+id+' + span') || document.querySelector('[id="mid_'+id+'"]')?.nextElementSibling;
-  if(span) span.style.color = enabled ? '#a855f7' : 'var(--muted)';
+  const linkInp = document.getElementById('midlink_'+id);
+  const nameInp = document.getElementById('midname_'+id);
+  if(linkInp) linkInp.disabled = !enabled;
+  if(nameInp) nameInp.disabled = !enabled;
 };
 
 // Save per-card mid link
@@ -299,6 +305,16 @@ window.saveMidLink = function(id, val){
   midLinkTimers[id] = setTimeout(async()=>{
     const {set} = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
     await set(ref(db,'templates/'+id+'/midLink'), val.trim());
+  }, 800);
+};
+
+// Save per-card mid button name
+let midNameTimers = {};
+window.saveMidName = function(id, val){
+  clearTimeout(midNameTimers[id]);
+  midNameTimers[id] = setTimeout(async()=>{
+    const {set} = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
+    await set(ref(db,'templates/'+id+'/midName'), val.trim());
   }, 800);
 };
 
