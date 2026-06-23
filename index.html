@@ -391,10 +391,10 @@ function makeCard(t){
   const howTo=t.howto||'https://youtu.be/sWjPWRbE6lI?si=3dF_paJmtTc6FS3X';
   const {thumb, embed} = getVideoInfo(t.video);
 
-  // Extra button (per-card setting)
+  // Extra button (per-card individual link)
   const eb = window._extraBtn||{};
-  const extraBtn = (eb.name && t.midBtn)
-    ? `<a href="${eb.link||'#'}" target="_blank" class="bu be">${eb.name||'🔗 Extra'}</a>`
+  const extraBtn = (t.midBtn && t.midLink)
+    ? `<a href="${t.midLink}" target="_blank" class="bu be">${eb.name||'🔗 Extra'}</a>`
     : '';
 
   return `
@@ -651,12 +651,7 @@ document.querySelectorAll('.fb').forEach(b=>{
 });
 
 // Load extra button settings from Firebase
-window._extraBtn = {name:'', link:''};
-onValue(ref(db,'settings/extraBtn'), snap=>{
-  const v = snap.val();
-  if(v) window._extraBtn = v;
-  if(allTemplates.length > 0) doFilter();
-});
+window._extraBtn = {name:'🔗 Extra'};
 
 loadTemplates();
 </script>

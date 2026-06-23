@@ -103,18 +103,7 @@ label{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.5px;text
   <!-- EXTRA BUTTON SETTINGS -->
   <div class="section">
     <div class="section-title">⚡ Middle Button Settings</div>
-    <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Set the global button name & link. Then enable per card individually from the template list below. ⬇️</p>
-    <div class="form-grid">
-      <div class="form-group full">
-        <label>Button Name / Text</label>
-        <input class="finp" type="text" id="ebName" placeholder="e.g. 🖼 Image Prompt" oninput="updateExtraBtn()">
-      </div>
-      <div class="form-group full">
-        <label>Button Link</label>
-        <input class="finp" type="url" id="ebLink" placeholder="https://..." oninput="updateExtraBtn()">
-      </div>
-    </div>
-    <div style="margin-top:12px;font-size:12px;color:#4ade80;display:none" id="ebSaved">✅ Saved!</div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:0">Each card has its own enable toggle + link. Set them from the template list below. ⬇️</p>
   </div>
 
   <!-- ADD TEMPLATE -->
@@ -247,13 +236,18 @@ function loadList(){
           <div class="tpl-meta">Added: ${date}</div>
         </div>
         <div style="display:flex;gap:6px;align-items:center">
-          <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px;color:var(--muted)" title="Enable middle button for this card">
-            <input type="checkbox" ${t.midBtn ? 'checked' : ''} style="width:15px;height:15px;cursor:pointer;accent-color:#a855f7" onchange="toggleMidBtn('${id}', this.checked)">
-            <span style="color:${t.midBtn ? '#a855f7' : 'var(--muted)'};font-size:11px">${t.midBtn ? '✅ Mid' : 'Mid'}</span>
-          </label>
           <button class="btn-edit" onclick="openEdit('${id}',${t.num},'${safeVideo}','${safeCapcut}','${safeHowto}','${t.cat||'trending'}')">✏️ Edit</button>
           <button class="btn-del" onclick="delTemplate('${id}')">🗑</button>
         </div>
+      </div>
+      <div style="margin-top:8px;padding:10px 12px;background:rgba(168,85,247,0.06);border-radius:10px;border:1px solid rgba(168,85,247,0.12);display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap">
+          <input type="checkbox" ${t.midBtn ? 'checked' : ''} id="mid_${id}" style="width:16px;height:16px;cursor:pointer;accent-color:#a855f7" onchange="toggleMidBtn('${id}', this.checked)">
+          <span style="font-size:12px;color:${t.midBtn ? '#a855f7' : 'var(--muted)'}">⚡ Middle Button</span>
+        </label>
+        <input type="url" id="midlink_${id}" value="${t.midLink||''}" placeholder="https://link for this card..." 
+          style="flex:1;min-width:180px;padding:6px 10px;border-radius:8px;border:1px solid rgba(168,85,247,0.2);background:rgba(0,0,0,0.3);color:#f8fafc;font-size:12px;outline:none"
+          oninput="saveMidLink('${id}', this.value)" ${!t.midBtn ? 'disabled' : ''}>
       </div>`;
     }).join('');
   });
@@ -287,31 +281,25 @@ window.delTemplate=async function(id){
   await remove(ref(db,'templates/'+id));
 };
 
-// Load extra button settings
-onValue(ref(db,'settings/extraBtn'), snap=>{
-  const v = snap.val()||{};
-  document.getElementById('ebName').value = v.name||'';
-  document.getElementById('ebLink').value = v.link||'';
-});
-
-let ebTimer;
-window.updateExtraBtn = function(){
-  clearTimeout(ebTimer);
-  ebTimer = setTimeout(async()=>{
-    const name = document.getElementById('ebName').value.trim();
-    const link = document.getElementById('ebLink').value.trim();
-    const {set} = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
-    await set(ref(db,'settings/extraBtn'), {name, link});
-    const s = document.getElementById('ebSaved');
-    s.style.display='block';
-    setTimeout(()=>s.style.display='none', 2000);
-  }, 800);
-};
-
 // Toggle mid button per card
 window.toggleMidBtn = async function(id, enabled){
   const {set} = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
   await set(ref(db,'templates/'+id+'/midBtn'), enabled);
+  // Enable/disable link input
+  const inp = document.getElementById('midlink_'+id);
+  if(inp) inp.disabled = !enabled;
+  const span = document.querySelector('#mid_'+id+' + span') || document.querySelector('[id="mid_'+id+'"]')?.nextElementSibling;
+  if(span) span.style.color = enabled ? '#a855f7' : 'var(--muted)';
+};
+
+// Save per-card mid link
+let midLinkTimers = {};
+window.saveMidLink = function(id, val){
+  clearTimeout(midLinkTimers[id]);
+  midLinkTimers[id] = setTimeout(async()=>{
+    const {set} = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
+    await set(ref(db,'templates/'+id+'/midLink'), val.trim());
+  }, 800);
 };
 
 window.saveEdit=async function(){
