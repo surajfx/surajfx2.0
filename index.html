@@ -391,11 +391,11 @@ function makeCard(t){
   const howTo=t.howto||'https://youtu.be/sWjPWRbE6lI?si=3dF_paJmtTc6FS3X';
   const {thumb, embed} = getVideoInfo(t.video);
 
-  // Extra button (from global Firebase settings)
+  // Extra button (per-card setting)
   const eb = window._extraBtn||{};
-  const extraBtn = eb.enabled
+  const extraBtn = (eb.name && t.midBtn)
     ? `<a href="${eb.link||'#'}" target="_blank" class="bu be">${eb.name||'🔗 Extra'}</a>`
-    : `<button class="bu be-dis" disabled>🔒 ${eb.name||'Coming Soon'}</button>`;
+    : '';
 
   return `
 <div class="card" id="card-${t.num}" data-id="${t.id}" data-num="${t.num}" data-cat="${t.cat||'trending'}" data-added="${t.addedAt||0}" data-capcut="${t.capcut||''}">
@@ -651,7 +651,7 @@ document.querySelectorAll('.fb').forEach(b=>{
 });
 
 // Load extra button settings from Firebase
-window._extraBtn = {enabled:false, name:'Coming Soon', link:''};
+window._extraBtn = {name:'', link:''};
 onValue(ref(db,'settings/extraBtn'), snap=>{
   const v = snap.val();
   if(v) window._extraBtn = v;
