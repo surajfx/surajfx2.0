@@ -72,16 +72,21 @@ h1{font-family:'Syne',sans-serif;font-size:clamp(42px,9vw,76px);font-weight:800;
 .divider{height:1px;background:linear-gradient(90deg,transparent,rgba(168,85,247,.4),rgba(236,72,153,.4),transparent);margin:8px 0 32px}
 
 /* CONTROLS */
-.ctrl{position:sticky;top:57px;z-index:50;background:rgba(8,8,16,.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);margin:0 -16px;padding:14px 16px}
-.sw{position:relative;margin-bottom:12px}
-.si-ico{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:16px;pointer-events:none}
-#searchInput{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:100px;padding:12px 16px 12px 44px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color .2s,box-shadow .2s}
+/* LIQUID GLASS FILTER */
+.liquid-glass-svg{position:absolute;width:0;height:0;overflow:hidden}
+
+.ctrl{position:sticky;top:12px;z-index:50;background:rgba(20,18,30,.35);backdrop-filter:blur(2px) saturate(180%);-webkit-backdrop-filter:blur(2px) saturate(180%);border:1px solid rgba(255,255,255,.15);border-radius:28px;margin:8px 0 0;padding:12px 14px;box-shadow:0 8px 32px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.1),0 0 0 1px rgba(168,85,247,.06);position:relative;isolation:isolate}
+.ctrl::before{content:'';position:absolute;inset:0;border-radius:28px;backdrop-filter:blur(1px);-webkit-backdrop-filter:url(#liquid-distort) blur(1px);filter:url(#liquid-distort);z-index:-1;pointer-events:none}
+.sw{position:relative;margin-bottom:10px}
+.si-ico{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:15px;pointer-events:none}
+#searchInput{width:100%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:100px;padding:11px 16px 11px 42px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;transition:border-color .2s,box-shadow .2s,background .2s;position:relative;isolation:isolate}
+.sw::before{content:'';position:absolute;inset:0;border-radius:100px;filter:url(#liquid-distort);z-index:-1;pointer-events:none}
 #searchInput::placeholder{color:var(--muted)}
-#searchInput:focus{border-color:rgba(168,85,247,.6);box-shadow:0 0 0 3px rgba(168,85,247,.1)}
-.filters{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px}
+#searchInput:focus{border-color:rgba(168,85,247,.6);box-shadow:0 0 0 3px rgba(168,85,247,.15);background:rgba(255,255,255,.11)}
+.filters{display:flex;gap:7px;overflow-x:auto;padding-bottom:2px}
 .filters::-webkit-scrollbar{display:none}
-.fb{background:var(--surface);border:1px solid var(--border);color:var(--muted);font-family:'Syne',sans-serif;font-size:13px;font-weight:600;padding:8px 16px;border-radius:100px;cursor:pointer;transition:all .2s;white-space:nowrap;flex-shrink:0}
-.fb:hover{background:var(--surface-h);color:var(--text);border-color:rgba(168,85,247,.4)}
+.fb{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--muted);font-family:'Syne',sans-serif;font-size:12px;font-weight:600;padding:7px 14px;border-radius:100px;cursor:pointer;transition:all .2s;white-space:nowrap;flex-shrink:0;backdrop-filter:blur(10px)}
+.fb:hover{background:rgba(255,255,255,.1);color:var(--text);border-color:rgba(168,85,247,.4)}
 .fb.active{background:var(--grad);border-color:transparent;color:#fff;box-shadow:0 0 20px rgba(168,85,247,.4)}
 
 .sh{display:flex;align-items:center;justify-content:space-between;margin:28px 0 16px}
@@ -220,21 +225,32 @@ html{scroll-behavior:smooth}
 body{-webkit-overflow-scrolling:touch}
 
 /* SCROLL REVEAL ANIMATION */
-.reveal{opacity:0;transform:translateY(14px);transition:opacity .5s ease,transform .5s ease}
+.reveal{opacity:0;transform:translateY(8px);transition:opacity .25s ease,transform .25s ease}
 .reveal.in{opacity:1;transform:translateY(0)}
 noscript .reveal,.reveal{animation:none}
 
 /* BOTTOM NAVIGATION */
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:300;background:rgba(8,8,16,.85);backdrop-filter:blur(24px) saturate(180%);border-top:1px solid rgba(255,255,255,.08);display:flex;justify-content:space-around;align-items:center;padding:10px 8px calc(10px + env(safe-area-inset-bottom));box-shadow:0 -8px 32px rgba(0,0,0,.4)}
-.bn-item{display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:none;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:11px;text-decoration:none;cursor:pointer;padding:8px 20px;border-radius:16px;transition:all .25s cubic-bezier(.34,1.56,.64,1);position:relative;-webkit-tap-highlight-color:transparent}
-.bn-item svg{width:22px;height:22px;transition:transform .25s cubic-bezier(.34,1.56,.64,1)}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:300;background:rgba(8,8,16,.55);backdrop-filter:blur(2px) saturate(180%);-webkit-backdrop-filter:blur(2px) saturate(180%);border-top:1px solid rgba(255,255,255,.12);display:flex;justify-content:space-around;align-items:center;padding:6px 8px calc(6px + env(safe-area-inset-bottom));box-shadow:0 -8px 32px rgba(0,0,0,.4);position:relative;isolation:isolate;transition:transform .35s cubic-bezier(.4,0,.2,1),opacity .35s ease}
+.bottom-nav.bn-hidden{transform:translateY(120%);opacity:0;pointer-events:none}
+.bottom-nav::before{content:'';position:absolute;inset:0;filter:url(#liquid-distort);z-index:-1;pointer-events:none}
+.bn-item{display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:none;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:9px;text-decoration:none;cursor:pointer;padding:6px 16px;border-radius:14px;transition:all .25s cubic-bezier(.34,1.56,.64,1);position:relative;-webkit-tap-highlight-color:transparent}
+.bn-item svg{width:17px;height:17px;transition:transform .25s cubic-bezier(.34,1.56,.64,1)}
 .bn-item.active{background:var(--grad);color:#fff;box-shadow:0 4px 16px rgba(168,85,247,.4)}
-.bn-item.active svg{transform:scale(1.1)}
+.bn-item.active svg{transform:scale(1.08)}
 .bn-item:active{transform:scale(.9)}
 
 </style>
 </head>
 <body>
+<svg class="liquid-glass-svg">
+  <defs>
+    <filter id="liquid-distort" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.008 0.015" numOctaves="2" seed="7" result="noise"/>
+      <feGaussianBlur in="noise" stdDeviation="2" result="blurredNoise"/>
+      <feDisplacementMap in="SourceGraphic" in2="blurredNoise" scale="18" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+</svg>
 <div class="blob b1"></div>
 <div class="blob b2"></div>
 <div class="blob b3"></div>
@@ -736,6 +752,38 @@ window.addEventListener('scroll', ()=>{
   }
 }, {passive:true});
 
+// ===== BOTTOM NAV AUTO HIDE ON SCROLL UP =====
+(function(){
+  const bottomNav = document.querySelector('.bottom-nav');
+  let lastY = window.scrollY;
+  let ticking = false;
+
+  function updateNav(){
+    const currentY = window.scrollY;
+    const diff = currentY - lastY;
+
+    if(currentY <= 20){
+      // Always show near top
+      bottomNav.classList.remove('bn-hidden');
+    } else if(diff > 4){
+      // Scrolling down (upward finger motion, content moves up) -> hide
+      bottomNav.classList.add('bn-hidden');
+    } else if(diff < -4){
+      // Scrolling up (finger moves down) -> show
+      bottomNav.classList.remove('bn-hidden');
+    }
+    lastY = currentY;
+    ticking = false;
+  }
+
+  window.addEventListener('scroll', ()=>{
+    if(!ticking){
+      requestAnimationFrame(updateNav);
+      ticking = true;
+    }
+  }, {passive:true});
+})();
+
 // ===== SCROLL REVEAL ANIMATION (smooth, GPU-friendly) =====
 const revealObserver = new IntersectionObserver((entries)=>{
   entries.forEach(entry=>{
@@ -744,14 +792,14 @@ const revealObserver = new IntersectionObserver((entries)=>{
       revealObserver.unobserve(entry.target);
     }
   });
-}, {threshold:0.08, rootMargin:'0px 0px -40px 0px'});
+}, {threshold:0.01, rootMargin:'200px 0px 200px 0px'});
 
 function observeReveal(){
   document.querySelectorAll('.card:not(.reveal), .ai-showcase:not(.reveal)').forEach(el=>{
     el.classList.add('reveal');
     revealObserver.observe(el);
-    // Safety fallback: force visible after 1.2s no matter what
-    setTimeout(()=>{ el.classList.add('in'); }, 1200);
+    // Safety fallback: force visible almost instantly in case observer is delayed
+    setTimeout(()=>{ el.classList.add('in'); }, 150);
   });
 }
 const gridObserver = new MutationObserver(()=>observeReveal());
