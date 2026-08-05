@@ -100,6 +100,16 @@ label{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.5px;text
     <div class="stat-box"><div class="stat-n" id="totalLikes">0</div><div class="stat-l">Total Likes</div></div>
   </div>
 
+  <!-- VISITOR ANALYTICS -->
+  <div class="section">
+    <div class="section-title">📊 Visitor Analytics</div>
+    <div class="stats-row" style="margin-bottom:0">
+      <div class="stat-box"><div class="stat-n" id="totalVisitors">0</div><div class="stat-l">Total Visitors</div></div>
+      <div class="stat-box"><div class="stat-n" id="weekVisitors">0</div><div class="stat-l">Last 7 Days</div></div>
+      <div class="stat-box"><div class="stat-n" id="todayVisitors">0</div><div class="stat-l">Today</div></div>
+    </div>
+  </div>
+
   <!-- EXTRA BUTTON SETTINGS -->
   <div class="section">
     <div class="section-title">⚡ Middle Button Settings</div>
@@ -204,6 +214,31 @@ function loadStats(){
     const total=Object.values(d).reduce((a,b)=>a+(b||0),0);
     const el=document.getElementById('totalLikes');
     if(el) el.textContent=String(total);
+  });
+  // Visitor analytics
+  onValue(ref(db,'analytics/visitors'), snap=>{
+    const d=snap.val()||{};
+    const total=Object.keys(d).length;
+    const el=document.getElementById('totalVisitors');
+    if(el) el.textContent=total>=1000?(total/1000).toFixed(1)+'K':String(total);
+  });
+  onValue(ref(db,'analytics/daily'), snap=>{
+    const d=snap.val()||{};
+    const today = new Date().toISOString().slice(0,10);
+    const todayCount = d[today] ? Object.keys(d[today]).length : 0;
+    const elToday=document.getElementById('todayVisitors');
+    if(elToday) elToday.textContent=String(todayCount);
+
+    // Last 7 days unique visitors
+    const uniqueWeek = new Set();
+    for(let i=0;i<7;i++){
+      const dt = new Date();
+      dt.setDate(dt.getDate()-i);
+      const key = dt.toISOString().slice(0,10);
+      if(d[key]) Object.keys(d[key]).forEach(uid=>uniqueWeek.add(uid));
+    }
+    const elWeek=document.getElementById('weekVisitors');
+    if(elWeek) elWeek.textContent = uniqueWeek.size>=1000?(uniqueWeek.size/1000).toFixed(1)+'K':String(uniqueWeek.size);
   });
 }
 
