@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bulk Template Uploader - Surajfx</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#0a0a0f;color:#f8fafc;font-family:'DM Sans',sans-serif;padding:20px;min-height:100vh}
+  h1{font-size:22px;margin-bottom:8px;background:linear-gradient(135deg,#a855f7,#ec4899,#f97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+  p{color:#94a3b8;font-size:14px;margin-bottom:20px}
+  .box{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:20px;margin-bottom:16px}
+  button{background:linear-gradient(135deg,#a855f7,#ec4899,#f97316);color:#fff;border:none;padding:14px 24px;border-radius:100px;font-size:15px;font-weight:700;cursor:pointer;width:100%;font-family:'DM Sans',sans-serif}
+  button:disabled{opacity:.5}
+  #log{background:#000;border-radius:12px;padding:16px;font-family:monospace;font-size:12px;max-height:400px;overflow-y:auto;white-space:pre-wrap;line-height:1.6}
+  .ok{color:#4ade80}
+  .err{color:#f87171}
+  .info{color:#94a3b8}
+  .progress{background:rgba(255,255,255,.08);border-radius:100px;height:8px;overflow:hidden;margin:16px 0}
+  .progress-bar{background:linear-gradient(90deg,#a855f7,#ec4899);height:100%;width:0%;transition:width .3s}
+  .stat{display:flex;justify-content:space-between;font-size:13px;color:#94a3b8;margin-bottom:4px}
+</style>
+</head>
+<body>
+
+<h1>🚀 Bulk Template Uploader</h1>
+<p>78 templates ready to upload to surajfx2 Firebase database</p>
+
+<div class="box">
+  <div class="stat"><span>Total templates:</span><span id="totalCount">78</span></div>
+  <div class="stat"><span>Uploaded:</span><span id="doneCount">0</span></div>
+  <div class="stat"><span>Skipped (duplicate):</span><span id="skipCount">0</span></div>
+  <div class="stat"><span>Failed:</span><span id="failCount">0</span></div>
+  <div class="progress"><div class="progress-bar" id="progBar"></div></div>
+  <button id="startBtn" onclick="startUpload()">⚡ Start Bulk Upload</button>
+</div>
+
+<div class="box">
+  <div id="log"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, push, get, query, orderByChild, equalTo }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey:"AIzaSyDhH_fplGM0SYhXYQyGEmSgsxchuUgi43I",
+  authDomain:"surajfx2.firebaseapp.com",
+  databaseURL:"https://surajfx2-default-rtdb.firebaseio.com",
+  projectId:"surajfx2",
+  storageBucket:"surajfx2.firebasestorage.app",
+  messagingSenderId:"386646596801",
+  appId:"1:386646596801:web:55a2379d8ab4155ab28840",
+  measurementId:"G-C5BYM882NQ"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+const templates = [
+  {
+    "num": 194,
+    "video": "https://youtube.com/shorts/Dw0NA_UBfko?si=kH0gqvoPQLl1hkt_",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7493822567938133301&template_language=None"
+  },
+  {
+    "num": 197,
+    "video": "https://youtube.com/shorts/5vy7Q_3EeLI?si=X_2yXc1_G7VzgPHx",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7496050031766588725&template_language=None"
+  },
+  {
+    "num": 198,
+    "video": "https://youtube.com/shorts/zxo-bhf2XeA?si=1Q-zElSHr-swhdkz",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7496429214669737269&template_language=None"
+  },
+  {
+    "num": 199,
+    "video": "https://youtube.com/shorts/GDWIAdfDFeE?si=op1MEX-ejWNMYevZ",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7496568623285292341&template_language=None"
+  },
+  {
+    "num": 200,
+    "video": "https://youtube.com/shorts/i6gtTcCToxk?si=FVyP72L-QZRkXB8g",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7496883097317739829&template_language=None"
+  },
+  {
+    "num": 201,
+    "video": "https://youtube.com/shorts/Uhm6DO5rpG8?si=KrQ8QVo_T2CWVXOQ",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7496006368361565493&template_language=None"
+  },
+  {
+    "num": 203,
+    "video": "https://youtube.com/shorts/4gVE6-xiDkE?si=2jyyndHkwRotdROD",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7497986635791895861&template_language=None"
+  },
+  {
+    "num": 205,
+    "video": "https://youtube.com/shorts/7jNTIAuk3ps?si=c9Pg_xSYkU6Mq9_l",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7499136444712193333&template_language=None"
+  },
+  {
+    "num": 206,
+    "video": "https://youtube.com/shorts/9vWZ7LNMqn4?si=SjqQKNYPI5sFd4M0",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7499724667037551933&template_language=None"
+  },
+  {
+    "num": 207,
+    "video": "https://youtube.com/shorts/tc66MRzbbNg?si=CEHQtub91uChyld-",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7486772235009592637&template_language=None"
+  },
+  {
+    "num": 208,
+    "video": "https://youtube.com/shorts/S0ato9TjmpQ?si=dnWUXDiyp04Ra7Pn",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7329207298050755848&template_language=None"
+  },
+  {
+    "num": 209,
+    "video": "https://youtube.com/shorts/WijncppsHeQ?si=5OmOqjKgQzlf_5ez",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7500993194767797557&template_language=Non"
+  },
+  {
+    "num": 234,
+    "video": "https://youtube.com/shorts/vy5f1AN8Blc?si=MjhY8oXgtVplyaOp",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7394616647421824261&template_language=None"
+  },
+  {
+    "num": 235,
+    "video": "https://youtube.com/shorts/n5tEI1Nt7uc?si=_h4hQ81380C2Y9wl",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7515815226684509493&template_language=None"
+  },
+  {
+    "num": 236,
+    "video": "https://youtube.com/shorts/S3Ek9kQtwtI?si=D_b2PN28JblKEmFk",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7509133140900760885&template_language=None"
+  },
+  {
+    "num": 237,
+    "video": "https://youtube.com/shorts/dgptCuyq9gc?si=yUehBXMehKZG7oEF",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7516488514939145525&template_language=None"
+  },
+  {
+    "num": 238,
+    "video": "https://youtube.com/shorts/SFNL-3OFqTM?si=Npr901q4pgEsRd6s",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7512705342099246397&template_language=None"
+  },
+  {
+    "num": 239,
+    "video": "https://youtube.com/shorts/w77MQ6-xHso?si=GN7ALVuAfBVT303F",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7503937124467510581&template_language=None"
+  },
+  {
+    "num": 240,
+    "video": "https://youtube.com/shorts/i-gf8_kkKV8?si=AlVHiopEztdYKuKq",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7461791908084387125&template_language=None"
+  },
+  {
+    "num": 241,
+    "video": "https://youtube.com/shorts/prQnH3dtsbw?si=X6FzzHvNaiMeF_G2",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7517280242801642805&template_language=None"
+  },
+  {
+    "num": 242,
+    "video": "https://youtube.com/shorts/9arUkC0BZJ8?si=CIGJhq-97c076eH-",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7517972937282964789&template_language=None"
+  },
+  {
+    "num": 243,
+    "video": "https://youtube.com/shorts/kMMK3yktjgY?si=XvnPo26fgBzdtFRK",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7210041469745368321&template_language=None"
+  },
+  {
+    "num": 244,
+    "video": "https://youtube.com/shorts/in2EkCVffFU?si=ciaK3y0lEdAsKfKt",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7476351125415873845&template_language=None"
+  },
+  {
+    "num": 245,
+    "video": "https://youtube.com/shorts/hCCG0OlMh34?si=ZPXkQJqzfW6bHMTY",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7500385878221557053&template_language=None"
+  },
+  {
+    "num": 246,
+    "video": "https://youtube.com/shorts/g_1lInaotdI?si=ZnGDg9YJLpH5vbfL",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7491723344186789173&template_language=None"
+  },
+  {
+    "num": 247,
+    "video": "https://youtube.com/shorts/AL2R4woQKHI?si=tBxoplIwXbZvGlPd",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7518109767957482813&template_language=None"
+  },
+  {
+    "num": 248,
+    "video": "https://youtube.com/shorts/XEglKBYy7bQ?si=W2EYB5qzdxQvfR2q",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7521731246850919741&template_language=None"
+  },
+  {
+    "num": 249,
+    "video": "https://youtube.com/shorts/4GoklUB8OYQ?si=kADsY3pygBzTb99N",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7513162099498011965&template_language=None"
+  },
+  {
+    "num": 250,
+    "video": "https://youtube.com/shorts/iDQyKU-geqA?si=rJ7xPin7A5M85veE",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7523859052028235061&template_language=None"
+  },
+  {
+    "num": 251,
+    "video": "https://youtube.com/shorts/_EWDPuZH0r8?si=LVekmlphuS6lz-d2",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7516466004566773045&template_language=None"
+  },
+  {
+    "num": 252,
+    "video": "https://youtube.com/shorts/G4DLCOIfXkE?si=dMqb4iBUeiNGrzje",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7528686641326722365&template_language=None"
+  },
+  {
+    "num": 253,
+    "video": "https://youtube.com/shorts/Dyx2yYE96Hw?si=eddcKoJj9Cu1UGiM",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7525116727382871357&template_language=None"
+  },
+  {
+    "num": 254,
+    "video": "https://youtube.com/shorts/0AhmGVjH7Zk?si=aP51m0E54yaPKpu3",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7485869779287379261&template_language=None"
+  },
+  {
+    "num": 255,
+    "video": "https://youtube.com/shorts/fI7bbDDCMQg?si=VyCPaU9U5ggg3Bzo",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7517695981433982269&template_language=None"
+  },
+  {
+    "num": 256,
+    "video": "https://youtube.com/shorts/bmhZSf5bj5I?si=CWXUrYzT9DvU8w_s",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7524751807986355509&template_language=None"
+  },
+  {
+    "num": 257,
+    "video": "https://youtube.com/shorts/sZvdpoTZgLE?si=CH0RdTEb36tCJQTD",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7508142725657627957&template_language=None"
+  },
+  {
+    "num": 258,
+    "video": "https://youtube.com/shorts/p2SpOz8PyUo?si=nfjVYG6eSK1jz7hH",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7497607539635277109&template_language=None"
+  },
+  {
+    "num": 259,
+    "video": "https://youtube.com/shorts/NrCzuARTE3I?si=zY3Kctiub5MCqvyU",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7528498603795434813&template_language=None"
+  },
+  {
+    "num": 260,
+    "video": "https://youtube.com/shorts/E9o0MqbdtEQ?si=6brc11yK8i0BW0u2",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7524307675115507005&template_language=None"
+  },
+  {
+    "num": 261,
+    "video": "https://youtube.com/shorts/ETa6P4FVMBY?si=XeRNYcx5LvXLm1qE",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7321287159711796482&template_language=None"
+  },
+  {
+    "num": 262,
+    "video": "https://youtube.com/shorts/GpUc4VGyLl0?si=UeTfo4KaLwqifJVE",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7528642772853607741&template_language=None"
+  },
+  {
+    "num": 263,
+    "video": "https://youtube.com/shorts/ldx3_EvVAec?si=yq8TEoXE_tkNXwAo",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7500530846219193661&template_language=None"
+  },
+  {
+    "num": 264,
+    "video": "https://youtube.com/shorts/wlRPRejk8Oc?si=fV7d_s_nZcHZ5pYU",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7525300614071422261&template_language=None"
+  },
+  {
+    "num": 265,
+    "video": "https://youtube.com/shorts/m_jYXqhnjwo?si=xSR9q-8LG37TwK9Z",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7532166549164150077&template_language=None"
+  },
+  {
+    "num": 266,
+    "video": "https://youtube.com/shorts/YIU4FI2BZoM?si=uR9whsoO6WYdL6EY",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7532077189488004405&template_language=None"
+  },
+  {
+    "num": 267,
+    "video": "https://youtube.com/shorts/5jp9LPXNWzo?si=-f45FeYQ3J_NznEx",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7531720210999561525&template_language=None"
+  },
+  {
+    "num": 268,
+    "video": "https://youtube.com/shorts/ZYEfiX-7cbA?si=kArgIaH06Fm98RNp",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7534945588782042429&template_language=None"
+  },
+  {
+    "num": 269,
+    "video": "https://youtube.com/shorts/tREtSQ9DErI?si=Ieik6JTbv0fPF7zr",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7533157765443833149&template_language=None"
+  },
+  {
+    "num": 270,
+    "video": "https://youtube.com/shorts/MlQiOZnv-5g?si=Y26aaurYmvdbOVCd",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7537170844678753589&template_language=None"
+  },
+  {
+    "num": 271,
+    "video": "https://youtube.com/shorts/3FT_9zwiG8w?si=qT4C-faTiKLjDFeT",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7536604139527081269&template_language=None"
+  },
+  {
+    "num": 272,
+    "video": "https://youtube.com/shorts/-nZXflrWmzQ?si=uSJNF3RgwCOZmgMn",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7545466407933283645&template_language=None"
+  },
+  {
+    "num": 273,
+    "video": "https://youtube.com/shorts/33noVcBr2d0?si=ZOBfDjyXxSDEFesQ",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7541377138948197693&template_language=None"
+  },
+  {
+    "num": 274,
+    "video": "https://youtube.com/shorts/yn2_haOtmWQ?si=SKZ3z8fjPRED1L84",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7544763435276406069&template_language=None"
+  },
+  {
+    "num": 275,
+    "video": "https://youtube.com/shorts/OwJy86OKt6Y?si=nQMh8l_xdxkxqXQw",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7545560881841687869&template_language=None"
+  },
+  {
+    "num": 276,
+    "video": "https://youtube.com/shorts/DYXIW6F4eCc?si=dSLesjbFbL__bp_g",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7545893012912524597&template_language=None"
+  },
+  {
+    "num": 277,
+    "video": "https://youtube.com/shorts/W_Oq337ZPR0?si=7OryXHr7v1jqyLqx",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7546279477853179189&template_language=None"
+  },
+  {
+    "num": 278,
+    "video": "https://youtube.com/shorts/2ihNhJenU4g?si=VZmpHLG2JHc-WjPl",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7548000008197524789&template_language=None"
+  },
+  {
+    "num": 279,
+    "video": "https://youtube.com/shorts/cDa7nStbixE?si=YvXSBpDhOZ4BXrKi",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7548157034558934325&template_language=None"
+  },
+  {
+    "num": 280,
+    "video": "https://youtube.com/shorts/O-0zUbg2cds?si=-au9lRuXhpu7z_xz",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7536570587318078781&template_language=None"
+  },
+  {
+    "num": 281,
+    "video": "https://youtube.com/shorts/8Jz597NASr0?si=t7BLiA6vjF7eNi8e",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7549599937223314741&template_language=None"
+  },
+  {
+    "num": 282,
+    "video": "https://youtube.com/shorts/A4HgH2kIkzI?si=4MJW_Aj7n3OtWMa_",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7468413945104158013&template_language=None"
+  },
+  {
+    "num": 283,
+    "video": "https://youtube.com/shorts/p0LNapIHUhY?si=93OmvB3dzESam0q6",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7550904769297108285&template_language=None"
+  },
+  {
+    "num": 284,
+    "video": "https://youtube.com/shorts/autJeHyvpbY?si=PenZr9_aRRq3ALNX",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7549535376759639349&template_language=None"
+  },
+  {
+    "num": 285,
+    "video": "https://youtube.com/shorts/GByOAOTAntk?si=Q6dgXqYbiO5VOa7A",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7553569052749204789&template_language=None"
+  },
+  {
+    "num": 286,
+    "video": "https://youtube.com/shorts/QM8sh7lPEYk?si=WsIoUC95lKUmvc7h",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7553678546347068725&template_language=None"
+  },
+  {
+    "num": 287,
+    "video": "https://youtube.com/shorts/wgXa_Ebq7Lc?si=qMbWGj8sSaQMy67J",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7552188831831690557&template_language=None"
+  },
+  {
+    "num": 288,
+    "video": "https://youtube.com/shorts/ohblFE1WPEI?si=v8zJjkvO_FeuWN-b",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7555518169532665141&template_language=None"
+  },
+  {
+    "num": 289,
+    "video": "https://youtube.com/shorts/k44mGK36Dvo?si=yNCTVy7il-k7MPtR",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7555576628710001973&template_language=None"
+  },
+  {
+    "num": 290,
+    "video": "https://youtube.com/shorts/XRzB_fiEb-g?si=2bP3ddIUB4ehAfTC",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7552173003333831989&template_language=None"
+  },
+  {
+    "num": 292,
+    "video": "https://youtube.com/shorts/1exW5ZBEvqk?si=yOX5-uHn3E7Rtuqs",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7558546502113627445&template_language=None"
+  },
+  {
+    "num": 293,
+    "video": "https://youtube.com/shorts/1kBimQ_TkyU?si=a-7kB0ouD2qlvUKR",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7559439810885160245&template_language=None"
+  },
+  {
+    "num": 294,
+    "video": "https://youtube.com/shorts/ZQGkErvor4s?si=FBEUPoCt3sM8DoKd",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7559838814802332989&template_language=None"
+  },
+  {
+    "num": 295,
+    "video": "https://youtube.com/shorts/9jK1byPTWnU?si=Zu4LGrhxZdkQOlJ8",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7556402285199248701&template_language=None"
+  },
+  {
+    "num": 296,
+    "video": "https://youtube.com/shorts/s-HjKJWDSbc?si=epGojBXPjihKq2jU",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7561296260129459517&template_language=None"
+  },
+  {
+    "num": 297,
+    "video": "https://youtube.com/shorts/ZusxJZsSLm8?si=U9ejhitMHoJkpT2Y",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7561704532997098757&template_language=None"
+  },
+  {
+    "num": 298,
+    "video": "https://youtube.com/shorts/jOYaa-CZye4?si=pf50uEfvVShmbRar",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7561834739473206581&template_language=None"
+  },
+  {
+    "num": 299,
+    "video": "https://youtube.com/shorts/59mMqD0XAQ8?si=zbC0SN4W-_Q_Q444",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7557777870878297397&template_language=None"
+  },
+  {
+    "num": 300,
+    "video": "https://youtube.com/shorts/GU2ajKl0OEk?si=zAGSEVCRHWG2mUua",
+    "capcut": "https://capcut-yt.onelink.me/W3Oy/?pid=template_sharing_q303&af_xp=social&af_force_deeplink=true&af_dp=capcut://template/detail?enter_from=template_share_t2&template_id=7508466066402626869&template_language=None"
+  }
+];
+
+const HOWTO_DEFAULT = "https://youtu.be/sWjPWRbE6lI?si=BP1VtKHb3k28I9N4";
+
+const log = document.getElementById('log');
+const doneEl = document.getElementById('doneCount');
+const skipEl = document.getElementById('skipCount');
+const failEl = document.getElementById('failCount');
+const progBar = document.getElementById('progBar');
+const startBtn = document.getElementById('startBtn');
+
+function addLog(msg, cls){
+  const line = document.createElement('div');
+  line.className = cls || 'info';
+  line.textContent = msg;
+  log.appendChild(line);
+  log.scrollTop = log.scrollHeight;
+}
+
+function toEmbed(url){
+  // Normalize youtube shorts URL for consistency (matches admin.html logic if any)
+  return url;
+}
+
+window.startUpload = async function(){
+  startBtn.disabled = true;
+  startBtn.textContent = '⏳ Uploading...';
+  let done = 0, skip = 0, fail = 0;
+
+  // Get existing templates to check duplicates by num
+  addLog('Checking existing templates...', 'info');
+  const existingSnap = await get(ref(db, 'templates'));
+  const existing = existingSnap.val() || {};
+  const existingNums = new Set(Object.values(existing).map(t => t.num));
+
+  addLog(`Found ${existingNums.size} existing templates in database.`, 'info');
+  addLog('Starting upload...', 'info');
+
+  for(let i=0; i<templates.length; i++){
+    const t = templates[i];
+    if(existingNums.has(t.num)){
+      addLog(`⏭ Skipped #${t.num} (already exists)`, 'err');
+      skip++;
+    } else {
+      try {
+        await push(ref(db, 'templates'), {
+          num: t.num,
+          video: t.video,
+          capcut: t.capcut,
+          howto: HOWTO_DEFAULT,
+          cat: 'trending',
+          createdAt: Date.now()
+        });
+        addLog(`✅ Added #${t.num}`, 'ok');
+        done++;
+      } catch(e){
+        addLog(`❌ Failed #${t.num}: ${e.message}`, 'err');
+        fail++;
+      }
+    }
+    doneEl.textContent = done;
+    skipEl.textContent = skip;
+    failEl.textContent = fail;
+    progBar.style.width = (((i+1)/templates.length)*100) + '%';
+    await new Promise(r => setTimeout(r, 150)); // small delay to avoid rate limits
+  }
+
+  addLog('', 'info');
+  addLog(`🎉 DONE! ${done} added, ${skip} skipped, ${fail} failed.`, 'ok');
+  startBtn.textContent = '✅ Upload Complete';
+};
+</script>
+</body>
+</html>
