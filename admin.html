@@ -125,6 +125,10 @@ label{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.5px;text
         <input class="finp" type="number" id="fNum" placeholder="e.g. 251">
       </div>
       <div class="form-group">
+        <label>Template Name (optional)</label>
+        <input class="finp" type="text" id="fName" placeholder="e.g. INSOMNIA Font">
+      </div>
+      <div class="form-group">
         <label>Category</label>
         <select class="finp" id="fCat">
           <option value="trending">🔥 Trending</option>
@@ -260,19 +264,20 @@ function loadList(){
       const safeVideo=(t.video||'').replace(/'/g,"\\'");
       const safeCapcut=(t.capcut||'').replace(/'/g,"\\'");
       const safeHowto=(t.howto||'').replace(/'/g,"\\'");
+      const safeName=(t.name||'').replace(/'/g,"\\'");
       return `
       <div class="tpl-item" style="flex-direction:column;align-items:stretch;gap:10px">
         <div style="display:flex;align-items:center;gap:10px">
           <div class="tpl-num">#${t.num||'?'}</div>
           <div class="tpl-info" style="flex:1">
             <div style="font-size:13px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:8px">
-              Template #${t.num}
+              Template #${t.num}${t.name?' / '+t.name:''}
               <span class="tpl-cat ${catClass}">${catLabel}</span>
             </div>
             <div class="tpl-meta">Added: ${date}</div>
           </div>
           <div style="display:flex;gap:6px;align-items:center">
-            <button class="btn-edit" onclick="openEdit('${id}',${t.num},'${safeVideo}','${safeCapcut}','${safeHowto}','${t.cat||'trending'}')">✏️ Edit</button>
+            <button class="btn-edit" onclick="openEdit('${id}',${t.num},'${safeVideo}','${safeCapcut}','${safeHowto}','${t.cat||'trending'}','${safeName}')">✏️ Edit</button>
             <button class="btn-del" onclick="delTemplate('${id}')">🗑</button>
           </div>
         </div>
@@ -297,6 +302,7 @@ function loadList(){
 
 window.addTemplate=async function(){
   const num=document.getElementById('fNum').value.trim();
+  const name=document.getElementById('fName').value.trim();
   const video=document.getElementById('fVideo').value.trim();
   const capcut=document.getElementById('fCapcut').value.trim();
   const howto=document.getElementById('fHowto').value.trim();
@@ -306,11 +312,11 @@ window.addTemplate=async function(){
   btn.disabled=true; btn.innerHTML='<span class="spin"></span> Adding...';
   try{
     await push(ref(db,'templates'),{
-      num:parseInt(num),video,capcut,
+      num:parseInt(num),name:name||'',video,capcut,
       howto:howto||'',cat,
       addedAt:Date.now()
     });
-    ['fNum','fVideo','fCapcut','fHowto'].forEach(id=>document.getElementById(id).value='');
+    ['fNum','fName','fVideo','fCapcut','fHowto'].forEach(id=>document.getElementById(id).value='');
     const msg=document.getElementById('successMsg');
     msg.style.display='block';
     setTimeout(()=>msg.style.display='none',3000);
@@ -356,6 +362,7 @@ window.saveMidName = function(id, val){
 window.saveEdit=async function(){
   const id=document.getElementById('editId').value;
   const num=document.getElementById('editNum').value.trim();
+  const name=document.getElementById('editName').value.trim();
   const video=document.getElementById('editVideo').value.trim();
   const capcut=document.getElementById('editCapcut').value.trim();
   const howto=document.getElementById('editHowto').value.trim();
@@ -366,7 +373,7 @@ window.saveEdit=async function(){
   try{
     const {set} = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
     await set(ref(db,'templates/'+id),{
-      num:parseInt(num), video, capcut,
+      num:parseInt(num), name:name||'', video, capcut,
       howto:howto||'', cat,
       addedAt: Date.now()
     });
@@ -387,6 +394,10 @@ window.saveEdit=async function(){
     <div class="form-group" style="margin-bottom:12px">
       <label>Template Number</label>
       <input class="finp" type="number" id="editNum">
+    </div>
+    <div class="form-group" style="margin-bottom:12px">
+      <label>Template Name (optional)</label>
+      <input class="finp" type="text" id="editName" placeholder="e.g. INSOMNIA Font">
     </div>
     <div class="form-group" style="margin-bottom:12px">
       <label>Category</label>
@@ -417,9 +428,10 @@ window.saveEdit=async function(){
 </div>
 
 <script>
-window.openEdit = function(id, num, video, capcut, howto, cat){
+window.openEdit = function(id, num, video, capcut, howto, cat, name){
   document.getElementById('editId').value = id;
   document.getElementById('editNum').value = num;
+  document.getElementById('editName').value = name || '';
   document.getElementById('editVideo').value = video;
   document.getElementById('editCapcut').value = capcut;
   document.getElementById('editHowto').value = howto;
