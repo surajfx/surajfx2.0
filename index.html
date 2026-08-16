@@ -223,6 +223,17 @@ h1{font-family:'Syne',sans-serif;font-size:clamp(42px,9vw,76px);font-weight:800;
 .nr h3{font-family:'Syne',sans-serif;font-size:20px;margin-bottom:8px}
 .nr p{color:var(--muted);font-size:14px}
 
+/* SKELETON LOADER (shown while first-time templates are loading) */
+.skel-card{background:var(--card-bg);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.skel-thumb{width:100%;padding-top:56.25%;position:relative;background:linear-gradient(90deg,rgba(255,255,255,.04) 25%,rgba(255,255,255,.09) 37%,rgba(255,255,255,.04) 63%);background-size:400% 100%;animation:skel-shimmer 1.4s ease-in-out infinite}
+.skel-body{padding:13px;display:flex;flex-direction:column;gap:10px}
+.skel-line{height:12px;border-radius:6px;background:linear-gradient(90deg,rgba(255,255,255,.04) 25%,rgba(255,255,255,.09) 37%,rgba(255,255,255,.04) 63%);background-size:400% 100%;animation:skel-shimmer 1.4s ease-in-out infinite}
+.skel-line.w60{width:60%}
+.skel-line.w40{width:40%}
+.skel-btn{height:38px;border-radius:var(--rs);background:linear-gradient(90deg,rgba(255,255,255,.04) 25%,rgba(255,255,255,.09) 37%,rgba(255,255,255,.04) 63%);background-size:400% 100%;animation:skel-shimmer 1.4s ease-in-out infinite}
+@keyframes skel-shimmer{0%{background-position:100% 0}100%{background-position:0 0}}
+[data-theme="light"] .skel-thumb,[data-theme="light"] .skel-line,[data-theme="light"] .skel-btn{background:linear-gradient(90deg,rgba(30,25,50,.04) 25%,rgba(30,25,50,.09) 37%,rgba(30,25,50,.04) 63%);background-size:400% 100%}
+
 .spin{display:inline-block;width:11px;height:11px;border:2px solid rgba(168,85,247,.3);border-top-color:var(--purple);border-radius:50%;animation:sp .7s linear infinite;vertical-align:middle}
 @keyframes sp{to{transform:rotate(360deg)}}
 
@@ -324,11 +335,10 @@ noscript .reveal,.reveal{animation:none}
   <div class="trend-info" id="trendInfo"></div>
 
   <div class="grid" id="grid">
-    <div class="nr show" id="nr">
-      <div class="nr-i">⏳</div>
-      <h3>Loading templates...</h3>
-      <p>Please wait</p>
-    </div>
+    <div class="skel-card"><div class="skel-thumb"></div><div class="skel-body"><div class="skel-line w60"></div><div class="skel-line w40"></div><div class="skel-btn"></div></div></div>
+    <div class="skel-card"><div class="skel-thumb"></div><div class="skel-body"><div class="skel-line w60"></div><div class="skel-line w40"></div><div class="skel-btn"></div></div></div>
+    <div class="skel-card"><div class="skel-thumb"></div><div class="skel-body"><div class="skel-line w60"></div><div class="skel-line w40"></div><div class="skel-btn"></div></div></div>
+    <div class="skel-card"><div class="skel-thumb"></div><div class="skel-body"><div class="skel-line w60"></div><div class="skel-line w40"></div><div class="skel-btn"></div></div></div>
   </div>
 </div>
 
