@@ -464,7 +464,9 @@ function makeCard(t){
   const isLiked=localStorage.getItem('like_'+t.id)?'liked':'';
   const heart=isLiked?'❤️':'🤍';
   const howTo=t.howto||'https://youtu.be/sWjPWRbE6lI?si=3dF_paJmtTc6FS3X';
-  const {thumb, embed} = getVideoInfo(t.video);
+  const videoInfo = getVideoInfo(t.video);
+  const thumb = t.thumb || videoInfo.thumb;
+  const embed = videoInfo.embed;
 
   // Extra button (per-card individual name + link)
   const extraBtn = (t.midBtn && t.midLink)
