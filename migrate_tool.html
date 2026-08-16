@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Firebase Data Migration Tool</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#0a0a0f;color:#f8fafc;font-family:'DM Sans',sans-serif;padding:20px;min-height:100vh}
+  h1{font-size:22px;margin-bottom:8px;background:linear-gradient(135deg,#a855f7,#ec4899,#f97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+  p{color:#94a3b8;font-size:14px;margin-bottom:20px}
+  .box{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:20px;margin-bottom:16px}
+  button{background:linear-gradient(135deg,#a855f7,#ec4899,#f97316);color:#fff;border:none;padding:14px 24px;border-radius:100px;font-size:15px;font-weight:700;cursor:pointer;width:100%;font-family:'DM Sans',sans-serif}
+  button:disabled{opacity:.5}
+  #log{background:#000;border-radius:12px;padding:16px;font-family:monospace;font-size:12px;max-height:450px;overflow-y:auto;white-space:pre-wrap;line-height:1.6}
+  .ok{color:#4ade80}
+  .err{color:#f87171}
+  .info{color:#94a3b8}
+  .warn{color:#fbbf24}
+  .progress{background:rgba(255,255,255,.08);border-radius:100px;height:8px;overflow:hidden;margin:16px 0}
+  .progress-bar{background:linear-gradient(90deg,#a855f7,#ec4899);height:100%;width:0%;transition:width .3s}
+  .stat{display:flex;justify-content:space-between;font-size:13px;color:#94a3b8;margin-bottom:4px}
+  .badge{display:inline-block;background:rgba(168,85,247,.15);color:#c084fc;font-size:11px;padding:3px 10px;border-radius:100px;margin-bottom:8px}
+</style>
+</head>
+<body>
+
+<h1>🔄 Firebase Data Migration Tool</h1>
+<p>Copies all data from <b>surajfx2</b> → <b>template-cc1cb</b></p>
+
+<div class="box">
+  <div class="badge">SOURCE: surajfx2</div>
+  <div class="badge" style="background:rgba(249,115,22,.15);color:#fdba74">DESTINATION: template-cc1cb</div>
+  <div class="stat" style="margin-top:12px"><span>Templates found:</span><span id="totalCount">-</span></div>
+  <div class="stat"><span>Migrated:</span><span id="doneCount">0</span></div>
+  <div class="stat"><span>Skipped (duplicate):</span><span id="skipCount">0</span></div>
+  <div class="stat"><span>Failed:</span><span id="failCount">0</span></div>
+  <div class="progress"><div class="progress-bar" id="progBar"></div></div>
+  <button id="startBtn" onclick="startMigration()">⚡ Start Full Migration</button>
+</div>
+
+<div class="box">
+  <div id="log"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, get, set, push }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+// SOURCE (old) Firebase project
+const sourceConfig = {
+  apiKey:"AIzaSyDhH_fplGM0SYhXYQyGEmSgsxchuUgi43I",
+  authDomain:"surajfx2.firebaseapp.com",
+  databaseURL:"https://surajfx2-default-rtdb.firebaseio.com",
+  projectId:"surajfx2",
+  storageBucket:"surajfx2.firebasestorage.app",
+  messagingSenderId:"386646596801",
+  appId:"1:386646596801:web:55a2379d8ab4155ab28840",
+  measurementId:"G-C5BYM882NQ"
+};
+
+// DESTINATION (new) Firebase project
+const destConfig = {
+  apiKey: "AIzaSyBgPllgUNMUo6j_Rbd7wg0NjR6z4YFy6uU",
+  authDomain: "template-cc1cb.firebaseapp.com",
+  databaseURL: "https://template-cc1cb-default-rtdb.firebaseio.com",
+  projectId: "template-cc1cb",
+  storageBucket: "template-cc1cb.firebasestorage.app",
+  messagingSenderId: "629554966666",
+  appId: "1:629554966666:web:e99b4dda5170da00a845d3",
+  measurementId: "G-Y3WFW4TR45"
+};
+
+const sourceApp = initializeApp(sourceConfig, "source");
+const destApp = initializeApp(destConfig, "dest");
+const sourceDb = getDatabase(sourceApp);
+const destDb = getDatabase(destApp);
+
+const log = document.getElementById('log');
+const doneEl = document.getElementById('doneCount');
+const skipEl = document.getElementById('skipCount');
+const failEl = document.getElementById('failCount');
+const totalEl = document.getElementById('totalCount');
+const progBar = document.getElementById('progBar');
+const startBtn = document.getElementById('startBtn');
+
+function addLog(msg, cls){
+  const line = document.createElement('div');
+  line.className = cls || 'info';
+  line.textContent = msg;
+  log.appendChild(line);
+  log.scrollTop = log.scrollHeight;
+}
+
+window.startMigration = async function(){
+  startBtn.disabled = true;
+  startBtn.textContent = '⏳ Migrating...';
+  let done = 0, skip = 0, fail = 0;
+
+  try {
+    addLog('📡 Connecting to source database (surajfx2)...', 'info');
+    const sourceSnap = await get(ref(sourceDb, 'templates'));
+    const sourceData = sourceSnap.val() || {};
+    const templates = Object.entries(sourceData);
+
+    if(templates.length === 0){
+      addLog('⚠️ No templates found in source database!', 'warn');
+      startBtn.textContent = '⚠️ No Data Found';
+      return;
+    }
+
+    totalEl.textContent = templates.length;
+    addLog(`✅ Found ${templates.length} templates in source.`, 'ok');
+
+    addLog('📡 Checking destination database (template-cc1cb) for duplicates...', 'info');
+    const destSnap = await get(ref(destDb, 'templates'));
+    const destData = destSnap.val() || {};
+    const existingNums = new Set(Object.values(destData).map(t => t.num));
+    addLog(`Found ${existingNums.size} existing templates in destination.`, 'info');
+
+    addLog('🚀 Starting template migration...', 'info');
+
+    for(let i=0; i<templates.length; i++){
+      const [oldId, t] = templates[i];
+      if(existingNums.has(t.num)){
+        addLog(`⏭ Skipped #${t.num} (already exists in destination)`, 'warn');
+        skip++;
+      } else {
+        try{
+          await push(ref(destDb, 'templates'), t);
+          addLog(`✅ Migrated #${t.num}${t.name?' / '+t.name:''}`, 'ok');
+          done++;
+        }catch(e){
+          addLog(`❌ Failed #${t.num}: ${e.message}`, 'err');
+          fail++;
+        }
+      }
+      doneEl.textContent = done;
+      skipEl.textContent = skip;
+      failEl.textContent = fail;
+      progBar.style.width = (((i+1)/templates.length)*100) + '%';
+      await new Promise(r => setTimeout(r, 120));
+    }
+
+    // Migrate other collections too (uses, likes, analytics)
+    addLog('', 'info');
+    addLog('📦 Migrating usage/like counts...', 'info');
+    const usesSnap = await get(ref(sourceDb, 'uses'));
+    const usesData = usesSnap.val() || {};
+    if(Object.keys(usesData).length > 0){
+      await set(ref(destDb, 'uses'), usesData);
+      addLog(`✅ Migrated ${Object.keys(usesData).length} use-count records`, 'ok');
+    }
+
+    const likesSnap = await get(ref(sourceDb, 'likes'));
+    const likesData = likesSnap.val() || {};
+    if(Object.keys(likesData).length > 0){
+      await set(ref(destDb, 'likes'), likesData);
+      addLog(`✅ Migrated ${Object.keys(likesData).length} like-count records`, 'ok');
+    }
+
+    addLog('', 'info');
+    addLog(`🎉 MIGRATION COMPLETE! ${done} added, ${skip} skipped, ${fail} failed.`, 'ok');
+    startBtn.textContent = '✅ Migration Complete';
+
+  } catch(e) {
+    addLog(`❌ FATAL ERROR: ${e.message}`, 'err');
+    addLog('Check that the destination Firebase project has Realtime Database enabled and rules allow write access.', 'warn');
+    startBtn.disabled = false;
+    startBtn.textContent = '⚡ Retry Migration';
+  }
+};
+</script>
+</body>
+</html>
