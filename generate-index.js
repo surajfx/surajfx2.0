@@ -80,6 +80,10 @@ async function generate() {
 
   fs.writeFileSync(INDEX_PATH, newHtml, "utf-8");
   console.log(`index.html update hoye gelo, ${templates.length} ta template embed kora holo.`);
+
+  // Firebase Admin SDK background-e connection khola rakhe, tai script-ta
+  // nijei bondho na hoye "hanging" thake. Explicitly exit kore dei.
+  process.exit(0);
 }
 
 generate().catch((err) => {
