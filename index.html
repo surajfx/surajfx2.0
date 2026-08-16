@@ -543,13 +543,62 @@ function renderGrid(templates){
 }
 
 // ===== FIREBASE LOAD =====
+// ===== INSTANT-LOAD CACHE SYSTEM =====
+const CACHE_KEY = 'sfx_templates_cache';
+const CACHE_TIME_KEY = 'sfx_cache_timestamp';
+
+function loadFromCache(){
+  try{
+    const cached = localStorage.getItem(CACHE_KEY);
+    if(!cached) return false;
+    const parsed = JSON.parse(cached);
+    if(!Array.isArray(parsed) || parsed.length===0) return false;
+    allTemplates = parsed;
+    doFilter();
+    return true;
+  }catch(e){
+    console.warn('Cache load failed, falling back to live load', e);
+    return false;
+  }
+}
+
+function saveToCache(templates){
+  try{
+    localStorage.setItem(CACHE_KEY, JSON.stringify(templates));
+    localStorage.setItem(CACHE_TIME_KEY, String(Date.now()));
+  }catch(e){
+    // Storage full - try clearing old cache and retry once
+    try{
+      localStorage.removeItem(CACHE_KEY);
+      localStorage.setItem(CACHE_KEY, JSON.stringify(templates));
+      localStorage.setItem(CACHE_TIME_KEY, String(Date.now()));
+    }catch(e2){
+      console.warn('Cache save failed even after retry', e2);
+    }
+  }
+}
+
 function loadTemplates(){
+  // 1. Try instant render from cache first (no loading spinner if cache exists)
+  const hadCache = loadFromCache();
+
+  // 2. Always fetch live data in background - updates silently when ready
   onValue(ref(db,'templates'), snap=>{
     const data = snap.val()||{};
-    allTemplates = Object.entries(data)
+    const fresh = Object.entries(data)
       .map(([id,t])=>({id,...t}))
       .sort((a,b)=>(b.num||0)-(a.num||0));
-    doFilter();
+
+    // Quick change detection: compare count + ids (cheap, avoids full JSON diff on large lists)
+    const changed = fresh.length !== allTemplates.length ||
+      fresh.some((t,i)=> !allTemplates[i] || t.id!==allTemplates[i].id || JSON.stringify(t)!==JSON.stringify(allTemplates[i]));
+
+    allTemplates = fresh;
+    saveToCache(fresh);
+
+    if(!hadCache || changed){
+      doFilter();
+    }
     loadCounts();
   });
 }
