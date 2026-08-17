@@ -1,0 +1,65 @@
+name: Auto Embed Template Data
+
+# Ei workflow ta:
+#   - Protii 30 minute-e nijei chole (cron schedule)
+#   - Chaile "Actions" tab theke manually o run kora jai
+#
+# Kaj: Firebase Realtime Database theke sob template data fetch kore,
+# index.html-er bhitore SORASORI bosiye dei, tarpor nijei commit+push
+# kore dei. Admin Panel theke template upload korar por r kichu
+# korte hobe na - shudhu wait korte hobe (max 30 minute) ba
+# Actions tab theke manually "Run workflow" chapte paren.
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+jobs:
+  embed-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Repo checkout kori
+        uses: actions/checkout@v4
+
+      - name: Node.js setup kori
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Dependencies install kori
+        run: npm install firebase-admin
+
+      - name: Firebase service account key file banai (GitHub Secret theke)
+        # Secret-ta base64 format-e store kora, tai decode kore file banano hocche.
+        run: echo "${{ secrets.SURAJFX_FIREBASE_SERVICE_ACCOUNT }}" | base64 -d > serviceAccountKey.json
+
+      - name: Template data index.html-e embed kori
+        run: node generate-index.js
+
+      - name: Protita template-er static share page generate kori
+        run: node generate-template-pages.js
+
+      - name: Notun template page-gulo main folder-e copy kori
+        run: |
+          mkdir -p template
+          cp -r output/template/* ./template/ || true
+          cp output/sitemap-templates.xml ./sitemap-templates.xml || true
+
+      - name: Change ache ki check kori, thakle commit+push kori
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add index.html template/ sitemap-templates.xml
+          if git diff --cached --quiet; then
+            echo "Kono notun template data nei, deploy korar dorkar nei."
+          else
+            git commit -m "Auto: template data embed hoise ($(date '+%Y-%m-%d %H:%M UTC'))"
+            git push
+          fi
+
+      - name: Service account key file muchi (security-r jonno)
+        if: always()
+        run: rm -f serviceAccountKey.json
+        
